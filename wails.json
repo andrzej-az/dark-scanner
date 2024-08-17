@@ -1,0 +1,13 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "dark-scanner",
+  "outputfilename": "dark-scanner",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Andrii Zakharchenko",
+    "email": "andrzej.zakharchenko@gmail.com"
+  }
+}
