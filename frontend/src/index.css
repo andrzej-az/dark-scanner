@@ -76,3 +76,10 @@
     @apply bg-background text-foreground;
   }
 }
+.titlebar{
+  widows:1; 
+  height:35px; 
+  width:100%;
+  position: absolute;
+  
+}

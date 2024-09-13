@@ -4,7 +4,7 @@ import (
 	"context"
 	scanner "dark_scanner/pkg/scanner"
 	"fmt"
-
+	"os"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -45,6 +45,10 @@ func (a *App) shutdown(ctx context.Context) {
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
+func (a *App) Exit(){
+	os.Exit(0)
+}
+
 func (a *App) Scan(params scanner.ScanParams) {
 	settings := scanner.Settings{
 		Ports:      []int{22, 80, 135, 443},
