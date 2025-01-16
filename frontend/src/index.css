@@ -80,5 +80,7 @@
   widows:1; 
   height:35px; 
   width:100%;
-  position: absolute;
+  position: fixed;
+  background-color: black;
+  z-index: 1;
 }
