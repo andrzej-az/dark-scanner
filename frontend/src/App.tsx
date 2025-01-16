@@ -2,29 +2,39 @@ import { Button } from "@/components/ui/button";
 import { ThemeProvider } from "@/components/theme-provider";
 import { MaskInput } from "./components/ui/mask-input";
 import { EventsOn, WindowMaximise, WindowMinimise, WindowUnmaximise } from '../wailsjs/runtime'
-import { Exit, Scan } from '../wailsjs/go/main/App'
-import { SetStateAction, useState } from "react";
+import { Exit, Scan, GetSettings } from '../wailsjs/go/main/App'
+import { SetStateAction, useState, useEffect } from "react";
 import HostCard from "./card";
 import { Host } from "./Host";
 import { Label } from "./components/ui/label";
 import { Progress } from "./components/ui/progress";
 import {  CopyIcon, Cross1Icon,  MinusIcon, SquareIcon } from '@radix-ui/react-icons'
-
 let _scanData = [] as Host[]
 
 function App() {
   const [scanData, setScanData] = useState([] as Host[])
+
+  useEffect(() => {
+    async function fetchSettings() {
+      const settings = (await GetSettings()) as any;
+      setStartIp(settings.Range.StartIp)
+      setEndIp(settings.Range.EndIp)
+    }
+    fetchSettings();
+  }, []);
+
   let [startIp, setStartIp] = useState('');
   const [endIp, setEndIp] = useState('');
   const [enabled, setEnabled] = useState(true);
   const [progress, setProgress] = useState(0);
   const [showProgress, setShowProgress] = useState(false);
 
-  const handleOnScanStart = (setEnabled: (arg0: boolean) => void) => {
+  const handleOnScanStart = (setEnabled: (arg0: boolean) => void, setScanData: (arg0: Host[]) => void) => {
     return () => {
       console.log(`Received event: onScanStart`);
       setEnabled(false);
       setProgress(0);
+      setScanData([]);
       setShowProgress(true)
 
     };
@@ -71,7 +81,7 @@ function App() {
     };
   };
   EventsOn('onHostFound', handleOnHostFound(_scanData, setScanData));
-  EventsOn('onScanStart', handleOnScanStart(setEnabled));
+  EventsOn('onScanStart', handleOnScanStart(setEnabled, setScanData));
   EventsOn('onScanFinish', handleOnScanStop(setEnabled, setShowProgress));
   EventsOn('OnHostScanFinish', handleOnHostScanFinish(_scanData, setScanData));
   EventsOn('OnProgress', handleProgress(setProgress));
@@ -101,7 +111,7 @@ function App() {
        <Button variant="ghost" className="px-4"><svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 3C1.22386 3 1 3.22386 1 3.5C1 3.77614 1.22386 4 1.5 4H13.5C13.7761 4 14 3.77614 14 3.5C14 3.22386 13.7761 3 13.5 3H1.5ZM1 7.5C1 7.22386 1.22386 7 1.5 7H13.5C13.7761 7 14 7.22386 14 7.5C14 7.77614 13.7761 8 13.5 8H1.5C1.22386 8 1 7.77614 1 7.5ZM1 11.5C1 11.2239 1.22386 11 1.5 11H13.5C13.7761 11 14 11.2239 14 11.5C14 11.7761 13.7761 12 13.5 12H1.5C1.22386 12 1 11.7761 1 11.5Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
         </Button>
        
-        <div className="px-4 ml-auto flex justify-center items-center text-gray-400" >Dark scanner</div>
+        <div className="px-4 ml-auto flex justify-center items-center text-gray-300" >Dark scanner</div>
         <div className="px-4 ml-auto flex justify-center items-center">
         <Button variant="ghost" className="pl-2 pr-2" onClick={() => WindowMinimise()}><MinusIcon /></Button>
         {isMaximized? 
@@ -116,7 +126,7 @@ function App() {
 
 
         <div className="flex flex-row space-x-2 justify-center pt-3">
-          <div ><Label>Start IP</Label><MaskInput aria-label="Enter start IP" value={startIp} onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+          <div ><Label className="text-gray-300">Start IP</Label><MaskInput aria-label="Enter start IP" value={startIp} onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             if (e.key === 'Enter' && startIp && endIp) {
               Scan({ StartIp: startIp, EndIp: endIp });
             }
@@ -124,7 +134,7 @@ function App() {
           </div>
           <div className="flex flex-col-reverse	"><span style={{ paddingBottom: 10 }}>-</span></div>
           <div>
-            <Label>End IP</Label>
+            <Label className="text-gray-300">End IP</Label>
             <MaskInput value={endIp} onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'Enter' && startIp && endIp) {
                 Scan({ StartIp: startIp, EndIp: endIp });

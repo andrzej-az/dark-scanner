@@ -8,18 +8,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	settings "dark_scanner/pkg/settings"
+
 	ping "github.com/prometheus-community/pro-bing"
 )
 
-type ScanParams struct {
-	StartIp string
-	EndIp   string
-}
-type Settings struct {
-	Ports      []int
-	NumWorkers int
-	Callbacks  Callbacks
-}
 type Host struct {
 	Ip    string
 	Ports []int
@@ -101,7 +94,7 @@ func checkPorts(ip string, ports []int) []int {
 	return openPorts
 }
 
-func worker(ips <-chan string, ports []int, wg *sync.WaitGroup, settings Settings, processedIPs *int32, totalIPs int) {
+func worker(ips <-chan string, ports []int, wg *sync.WaitGroup, callbacks Callbacks, processedIPs *int32, totalIPs int) {
 	defer wg.Done()
 	for ip := range ips {
 		pingChan := make(chan bool)
@@ -128,25 +121,25 @@ func worker(ips <-chan string, ports []int, wg *sync.WaitGroup, settings Setting
 
 		if pingResult || len(portResult.ports) > 0 {
 			host := Host{Ip: ip}
-			settings.Callbacks.OnHostFound(host)
+			callbacks.OnHostFound(host)
 			host = Host{Ip: ip, Ports: portResult.ports}
-			settings.Callbacks.OnHostScanFinish(host)
+			callbacks.OnHostScanFinish(host)
 		}
 
 		// Increment the processed IP counter atomically and report progress
 		processed := atomic.AddInt32(processedIPs, 1)
 		progress := int(float64(processed) / float64(totalIPs) * 100)
-		settings.Callbacks.OnProgress(progress)
+		callbacks.OnProgress(progress)
 	}
 }
 
-func Scan(settings Settings, params ScanParams) {
+func Scan(settings *settings.Settings, callbacks Callbacks) {
 
-	ips, err := ipRange(params.StartIp, params.EndIp)
-	settings.Callbacks.OnScanStart()
+	ips, err := ipRange(settings.Range.StartIp, settings.Range.EndIp)
+	callbacks.OnScanStart()
 	if err != nil {
 		fmt.Printf("Error generating IP range: %v\n", err)
-		settings.Callbacks.OnScanFinish()
+		callbacks.OnScanFinish()
 		return
 	}
 
@@ -163,7 +156,7 @@ func Scan(settings Settings, params ScanParams) {
 	// Start worker goroutines
 	for i := 0; i < settings.NumWorkers; i++ {
 		wg.Add(1)
-		go worker(ipChan, settings.Ports, &wg, settings, &processedIPs, totalIPs)
+		go worker(ipChan, settings.Ports, &wg, callbacks, &processedIPs, totalIPs)
 	}
 
 	// Send IPs to be processed
@@ -178,8 +171,8 @@ func Scan(settings Settings, params ScanParams) {
 	go func() {
 		wg.Wait()
 		close(results)
-		settings.Callbacks.OnProgress(100)
-		settings.Callbacks.OnScanFinish()
+		callbacks.OnProgress(100)
+		callbacks.OnScanFinish()
 	}()
 
 	// Print results
@@ -187,5 +180,5 @@ func Scan(settings Settings, params ScanParams) {
 		fmt.Println(result)
 	}
 
-	settings.Callbacks.OnScanFinish()
+	callbacks.OnScanFinish()
 }

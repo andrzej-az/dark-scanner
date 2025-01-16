@@ -6,6 +6,10 @@ export function Exit() {
   return window['go']['main']['App']['Exit']();
 }
 
+export function GetSettings() {
+  return window['go']['main']['App']['GetSettings']();
+}
+
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }

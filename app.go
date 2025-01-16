@@ -3,14 +3,19 @@ package main
 import (
 	"context"
 	scanner "dark_scanner/pkg/scanner"
+	settings "dark_scanner/pkg/settings"
+	util "dark_scanner/pkg/util"
 	"fmt"
 	"os"
+	r "runtime"
+
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx      context.Context
+	settings *settings.Settings
 }
 
 // NewApp creates a new App application struct
@@ -22,6 +27,10 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	// Perform your setup here
 	a.ctx = ctx
+	a.settings, _ = settings.New()
+	if r.GOOS == "linux" {
+		util.AddDesktopItem()
+	}
 }
 
 // domReady is called after front-end resources have been loaded
@@ -45,31 +54,33 @@ func (a *App) shutdown(ctx context.Context) {
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
-func (a *App) Exit(){
+func (a *App) Exit() {
 	os.Exit(0)
 }
 
-func (a *App) Scan(params scanner.ScanParams) {
-	settings := scanner.Settings{
-		Ports:      []int{22, 80, 135, 443},
-		NumWorkers: 100,
-		Callbacks: scanner.Callbacks{
-			OnScanStart: func() {
-				runtime.EventsEmit(a.ctx, "onScanStart")
-			},
-			OnScanFinish: func() {
-				runtime.EventsEmit(a.ctx, "onScanFinish")
-			},
-			OnHostFound: func(host scanner.Host) {
-				runtime.EventsEmit(a.ctx, "onHostFound", host)
-			},
-			OnHostScanFinish: func(host scanner.Host) {
-				runtime.EventsEmit(a.ctx, "OnHostScanFinish", host)
-			},
-			OnProgress: func(progress int) {
-				runtime.EventsEmit(a.ctx, "OnProgress", progress)
-			},
+func (a *App) GetSettings() *settings.Settings {
+	return a.settings
+}
+
+func (a *App) Scan(params settings.ScanParams) {
+	a.settings.Range = params
+	a.settings.Save()
+	callbacks := scanner.Callbacks{
+		OnScanStart: func() {
+			runtime.EventsEmit(a.ctx, "onScanStart")
+		},
+		OnScanFinish: func() {
+			runtime.EventsEmit(a.ctx, "onScanFinish")
+		},
+		OnHostFound: func(host scanner.Host) {
+			runtime.EventsEmit(a.ctx, "onHostFound", host)
+		},
+		OnHostScanFinish: func(host scanner.Host) {
+			runtime.EventsEmit(a.ctx, "OnHostScanFinish", host)
+		},
+		OnProgress: func(progress int) {
+			runtime.EventsEmit(a.ctx, "OnProgress", progress)
 		},
 	}
-	scanner.Scan(settings, params)
+	scanner.Scan(a.settings, callbacks)
 }
