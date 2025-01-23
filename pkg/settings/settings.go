@@ -23,7 +23,7 @@ var defaultSettings = &Settings{
 		StartIp: "",
 		EndIp:   "",
 	},
-	Ports:      []int{22, 80, 135, 443},
+	Ports:      []int{22, 80, 135, 139, 443, 445},
 	NumWorkers: 100,
 }
 
