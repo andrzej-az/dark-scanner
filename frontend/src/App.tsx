@@ -56,8 +56,6 @@ function App() {
         setScanData(_scanData);
       }
 
-      // console.log(`Received event: ${JSON.stringify(data)}`);
-      // console.log(`ScanData is : ${JSON.stringify(_scanData)}`);
     };
   };
   const handleOnHostScanFinish = (_scanData: Host[], setScanData: (arg0: Host[]) => void) => {
@@ -72,8 +70,6 @@ function App() {
 
       }
 
-      // console.log(`Received event: ${JSON.stringify(data)}`);
-      // console.log(`ScanData is : ${JSON.stringify(_scanData)}`);
     };
   };
   const handleProgress = (setProgress: (arg0: number) => void) => {

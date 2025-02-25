@@ -9,13 +9,13 @@ import (
 )
 
 type Settings struct {
-	Range      ScanParams
-	Ports      []int
-	NumWorkers int
+	Range      ScanParams `json:"ScanParams"`
+	Ports      []int      `json:"Ports"`
+	NumWorkers int        `json:"NumWorkers"`
 }
 type ScanParams struct {
-	StartIp string
-	EndIp   string
+	StartIp string `json:"StartIp"`
+	EndIp   string `json:"EndIp"`
 }
 
 var defaultSettings = &Settings{

@@ -14,8 +14,8 @@ import (
 )
 
 type Host struct {
-	Ip    string
-	Ports []int
+	Ip    string `json:"Ip"`
+	Ports []int  `json:"Ports"`
 }
 
 type Callbacks struct {
